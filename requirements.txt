@@ -1,0 +1,13 @@
+# fastapi
+# uvicorn[standard]
+# python-dotenv
+# requests
+# pinecone-client
+# google-genai
+# PyPDF2
+
+pyppeteer
+google-genai
+python-dotenv
+Pillow
+nest_asyncio
