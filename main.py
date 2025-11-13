@@ -54,11 +54,38 @@ def main():
 
         # --- Inner loop for tool execution ---
         while True:
-            response = client.models.generate_content(
-                model=MODEL,
-                contents=conversation_history,
-                config=config
-            )
+            try:
+                # MARKED CHANGE: Wrap the API call in a try block
+                response = client.models.generate_content(
+                    model=MODEL,
+                    contents=conversation_history,
+                    config=config
+                )
+
+            # CORRECTED: Reference the error classes using the 'genai.errors' path.
+            # This replaces the failed direct import.
+            except (genai.errors.ResourceExhaustedError, genai.errors.InternalServerError) as e:
+                print("\n⚠️ **MODEL OVERLOAD ERROR (503/429)** ⚠️")
+                print("The AI service is currently overloaded or too busy. Please wait a moment and try your request again.")
+                
+                # Critical: Remove the last user message from history, as it triggered the error
+                if conversation_history and conversation_history[-1].role == "user":
+                    conversation_history.pop()
+                
+                break # Exit the inner loop, return to main user prompt
+                
+            except Exception as e:
+                # Catch any other unexpected errors
+                print(f"\n❌ Assistant Error: An unexpected API error occurred: {e}")
+                
+                # Optionally remove the last user message here too
+                if conversation_history and conversation_history[-1].role == "user":
+                    conversation_history.pop()
+                
+                break # Exit the inner loop, return to main user prompt
+
+
+            print(response.usage_metadata)
 
             # --- SAFETY CHECK ---
             if not response.candidates:
@@ -102,7 +129,7 @@ def main():
                 )
 
                 print("📚 Tool result returned — rethinking...\n")
-                continue # Re-start the inner while loop to get the final answer or next tool call
+                continue 
 
             # Normal Model Response (No Tool Call)
             print("\n✅ Assistant:")

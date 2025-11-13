@@ -1,4 +1,3 @@
-# layout_tools.py
 
 import requests
 from google.genai import types
